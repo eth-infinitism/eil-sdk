@@ -61,6 +61,10 @@ import { CrossChainSdk, TransferAction, ApproveAction, FunctionCallAction } from
 
   const usdc = sdk.createToken('USDC', tokensFile.USDC)
 
+  const callback = function (args) {
+    console.log(args)
+  }
+
   const executor =
     await builder.startBatch(10)
       .addVoucherRequest({ tokens: [{ token: usdc, amount: 90 }], destinationChainId: 42161, ref: 'voucher1' })
@@ -71,6 +75,7 @@ import { CrossChainSdk, TransferAction, ApproveAction, FunctionCallAction } from
       .addAction(new FunctionCallAction({ functionName: 'purchaseNft', args: [123] }))
       .endBatch()
       .buildAndSign()
+      .execute(callback)
 
 ```
 
