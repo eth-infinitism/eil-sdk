@@ -50,7 +50,7 @@ export class MultiChainSmartAccount extends BaseMultichainSmartAccount {
         let client = networkEnv.chains.clientOn(chain.chainId)
         const entryPointAddress = networkEnv.entrypoints.addressOn(chain.chainId)
 
-        const factoryAddress = '0xAD07bbb7bEA77E323C838481F668d22864e9F66E' //ep9 simpleAccount factory
+        const factoryAddress = '0x2862B77afcF4405e766328E697E0236b9974b8fa' //ep9 simpleAccount factory
         const account: SmartAccount = await toSimpleSmartAccount({
           owner,
           client,

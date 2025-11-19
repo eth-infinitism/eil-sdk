@@ -1,4 +1,4 @@
-import { Address, Hex, PrivateKeyAccount, publicActions } from 'viem'
+import { Address, Hex, hexToBigInt, PrivateKeyAccount, publicActions } from 'viem'
 import { BaseAction, FunctionCallAction, prepareCallWithRuntimeVars, VoucherRequestAction } from '../actions/index.js'
 import { CrossChainBuilder } from './CrossChainBuilder.js'
 import { CrossChainVoucherCoordinator } from './CrossChainVoucherCoordinator.js'
@@ -17,7 +17,7 @@ import {
 import { appendPaymasterSignature, getUserOpHash } from '../index.js'
 import { assert } from '../sdkUtils/SdkUtils.js'
 import { Asset } from '../../contractTypes/Asset.js'
-import { abiEncodePaymasterData } from '../../utils/index.js'
+import { abiEncodePaymasterData, nowSeconds } from '../../utils/index.js'
 
 /**
  * Return the minimum amount for an asset.
@@ -218,11 +218,12 @@ export class BatchBuilder {
       calls.length == 0 ? '0x' : mcAccount.encodeCalls(chainId, calls)
     ])
 
+    const nonce1 = BigInt(nowSeconds()) << 64n
     const { maxFeePerGas, maxPriorityFeePerGas } = await smartAccount.client.extend(publicActions).estimateFeesPerGas()
     let userOp = {
       chainId,
       sender,
-      nonce,
+      nonce: nonce1,
       factory,
       factoryData,
       callData,
