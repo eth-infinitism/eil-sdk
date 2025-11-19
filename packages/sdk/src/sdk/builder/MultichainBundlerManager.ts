@@ -50,7 +50,7 @@ export class MultichainBundlerManager implements IBundlerManager {
     const jsonUserOp = JSON.parse(JSON.stringify(userOp, stringifyBigIntReplacer))
     return provider.request({
       method: 'eth_sendUserOperation',
-      params: [jsonUserOp, this.entryPoints.get(userOp.chainId!)]
+      params: [jsonUserOp, userOp.entryPointAddress]
     })
   }
 }
