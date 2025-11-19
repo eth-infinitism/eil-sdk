@@ -5,5 +5,5 @@ export * from './CrossChainExecutor.js'
 export * from './CrossChainVoucherCoordinator.js'
 export * from './MultichainBundlerManager.js'
 export * from './GetMultiChainConfig.js'
-export * from './SdkConfig.js'
+export * from './NetworkEnvironment.js'
 

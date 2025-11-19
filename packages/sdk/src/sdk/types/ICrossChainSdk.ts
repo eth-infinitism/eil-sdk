@@ -1,7 +1,7 @@
 import { ICrossChainBuilder } from './ICrossChainBuilder.js'
 import { AddressPerChain } from './MultichainContract.js'
 import { MultichainToken } from './MultichainToken.js'
-import { SdkConfig } from '../builder/index.js'
+import { NetworkEnvironment } from '../builder/index.js'
 
 /**
  * CrossChainSdk is the main entry point for building cross-chain actions.
@@ -19,6 +19,6 @@ export interface ICrossChainSdk {
    */
   createToken (name: string, deployments: AddressPerChain): MultichainToken
 
-  getConfig(): SdkConfig
+  getNetworkEnv(): NetworkEnvironment
 }
 

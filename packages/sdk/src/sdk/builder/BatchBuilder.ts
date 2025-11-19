@@ -2,7 +2,7 @@ import { Address, Hex, PrivateKeyAccount, publicActions } from 'viem'
 import { BaseAction, FunctionCallAction, prepareCallWithRuntimeVars, VoucherRequestAction } from '../actions/index.js'
 import { CrossChainBuilder } from './CrossChainBuilder.js'
 import { CrossChainVoucherCoordinator } from './CrossChainVoucherCoordinator.js'
-import { SdkConfig } from './SdkConfig.js'
+import { NetworkEnvironment } from './NetworkEnvironment.js'
 import {
   ICrossChainBuilder,
   InternalVoucherInfo,
@@ -59,7 +59,7 @@ export class BatchBuilder {
     private readonly parentBuilder: ICrossChainBuilder,
     private readonly ephemeralSigner: PrivateKeyAccount,
     private readonly coordinator: CrossChainVoucherCoordinator,
-    readonly config: SdkConfig,
+    readonly config: NetworkEnvironment,
     readonly paymaster: `0x${string}`,
     readonly chainId: bigint
   ) {}

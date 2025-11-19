@@ -15,7 +15,7 @@ import IEntryPointInterface from '@account-abstraction/contracts/artifacts/IEntr
 import { AtomicSwapFeeRule } from '../../contractTypes/AtomicSwapFeeRule.js'
 import { amountOrMinAmount, BatchBuilder } from './BatchBuilder.js'
 import { CrossChainExecutor } from './CrossChainExecutor.js'
-import { SdkConfig } from './SdkConfig.js'
+import { NetworkEnvironment } from './NetworkEnvironment.js'
 import {
   ICrossChainBuilder,
   InternalVoucherInfo,
@@ -58,7 +58,7 @@ export class CrossChainBuilder implements ICrossChainBuilder {
   smartAccount: IMultiChainSmartAccount | undefined
 
   constructor (
-    readonly config: SdkConfig,
+    readonly config: NetworkEnvironment,
   ) {
     this.ephemeralSigner = privateKeyToAccount(generatePrivateKey())
     this.coordinator = new CrossChainVoucherCoordinator()

@@ -1,6 +1,6 @@
 import { CrossChainConfig, defaultCrossChainConfig } from './config/index.js'
 import { AddressPerChain, ICrossChainBuilder, ICrossChainSdk, MultichainToken } from './types/index.js'
-import { CrossChainBuilder, SdkConfig } from './builder/index.js'
+import { CrossChainBuilder, NetworkEnvironment } from './builder/index.js'
 
 /**
  * This class is the main component for building cross-chain actions.
@@ -8,30 +8,30 @@ import { CrossChainBuilder, SdkConfig } from './builder/index.js'
  */
 export class CrossChainSdk implements ICrossChainSdk {
 
-  config: SdkConfig
+  networkEnv: NetworkEnvironment
 
   constructor (
     config: CrossChainConfig = defaultCrossChainConfig
   ) {
-    this.config = new SdkConfig(config)
+    this.networkEnv = new NetworkEnvironment(config)
   }
 
   /**
    * create a builder for a cross-chain operation
    */
   createBuilder (): ICrossChainBuilder {
-    return new CrossChainBuilder(this.config)
+    return new CrossChainBuilder(this.networkEnv)
   }
 
   /**
    * create a MultichainToken with the given deployment addresses
    */
   createToken (name: string, deployments: AddressPerChain): MultichainToken {
-    return new MultichainToken(name, this.config.chains, deployments)
+    return new MultichainToken(name, this.networkEnv.chains, deployments)
   }
 
-  getConfig (): SdkConfig {
-    return this.config
+  getNetworkEnv (): NetworkEnvironment {
+    return this.networkEnv
   }
 }
 

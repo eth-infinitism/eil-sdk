@@ -11,7 +11,7 @@ import {
 import { toSimpleSmartAccount } from 'permissionless/accounts'
 
 /**
- * a simple MultichainAccount. using SsimpleSmartAccount on each chain.
+ * a simple MultichainAccount. using SimpleSmartAccount on each chain.
  * Note that the signature method called for each SimpleSmartAccount instead separately.
  * Also, its encoding can't support dynamic calls.
  */
@@ -33,7 +33,7 @@ export class MultiChainSmartAccount extends BaseMultichainSmartAccount {
     accounts: SmartAccount[]
   ) {
 
-    const bundlerManager = new MultichainBundlerManager(sdk.getConfig().input.chainInfos)
+    const bundlerManager = new MultichainBundlerManager(sdk.getNetworkEnv().input.chainInfos)
     super(bundlerManager)
     this.addAccounts(accounts)
   }
@@ -43,15 +43,14 @@ export class MultiChainSmartAccount extends BaseMultichainSmartAccount {
     sdk: ICrossChainSdk,
     accounts?: SmartAccount[]
   ): Promise<MultiChainSmartAccount> {
-    const config = sdk.getConfig()
+    const networkEnv = sdk.getNetworkEnv()
     if (accounts == null) {
       accounts = []
-      for (const chain of config.input.chainInfos) {
-        let client = config.chains.clientOn(chain.chainId)
-        const entryPointAddress = config.entrypoints.addressOn(chain.chainId)
-        console.log('ep=', entryPointAddress)
+      for (const chain of networkEnv.input.chainInfos) {
+        let client = networkEnv.chains.clientOn(chain.chainId)
+        const entryPointAddress = networkEnv.entrypoints.addressOn(chain.chainId)
 
-        const factoryAddress = '0xa46cc63eBF4Bd77888AA327837d20b23A63a56B5' //ep9 simpleAccount factory
+        const factoryAddress = '0xAD07bbb7bEA77E323C838481F668d22864e9F66E' //ep9 simpleAccount factory
         const account: SmartAccount = await toSimpleSmartAccount({
           owner,
           client,

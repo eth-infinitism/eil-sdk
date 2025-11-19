@@ -9,7 +9,7 @@ import {
   UserOperation
 } from '../types/index.js'
 import { CrossChainBuilder } from './CrossChainBuilder.js'
-import { SdkConfig } from './SdkConfig.js'
+import { NetworkEnvironment } from './NetworkEnvironment.js'
 import { SessionData } from '../../contractTypes/SessionData.js'
 import {
   abiEncodeVouchers,
@@ -101,7 +101,7 @@ export class CrossChainExecutor {
 
   constructor (
     readonly builder: CrossChainBuilder,
-    readonly config: SdkConfig,
+    readonly config: NetworkEnvironment,
     private readonly ephemeralSigner: PrivateKeyAccount,
     readonly batches: SingleChainBatch[],
     readonly timeoutSeconds = config.input.execTimeoutSeconds ?? 30,

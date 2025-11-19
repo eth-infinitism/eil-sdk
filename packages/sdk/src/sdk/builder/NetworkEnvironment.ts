@@ -7,7 +7,7 @@ import { CrossChainConfig } from '../config/index.js'
  * This includes setting up chain clients, paymasters, bundlers, and entry points across multiple chains.
  * @see {CrossChainConfig} for input configuration structure.
  */
-export class SdkConfig {
+export class NetworkEnvironment {
 
   readonly chains: MultichainClient
   readonly paymasters: MultichainContract
