@@ -3,6 +3,7 @@ import { XlpSelectionConfig } from './XlpSelectionConfig.js'
 import { FeeConfig } from './FeeConfig.js'
 import { ChainInfo } from './ChainInfo.js'
 import { PaymasterActions } from 'viem/account-abstraction'
+import { getMultiChainConfig } from '../builder/index.js'
 
 // general config of the CrossChainSdk
 export type CrossChainConfig = {
@@ -22,7 +23,13 @@ export type CrossChainConfig = {
   execTimeoutSeconds: number
 
   /**
-   * override default chain configuration (urls and contracts)
+   * per-chain info (urls, contracts)
    */
-  chainsInfoOverride?: ChainInfo[]
+  chainInfos: ChainInfo[]
+}
+
+export const defaultCrossChainConfig: CrossChainConfig = {
+  expireTimeSeconds: 60,
+  execTimeoutSeconds: 30,
+  chainInfos: getMultiChainConfig()
 }

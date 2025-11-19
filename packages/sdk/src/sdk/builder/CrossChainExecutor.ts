@@ -9,7 +9,7 @@ import {
   UserOperation
 } from '../types/index.js'
 import { CrossChainBuilder } from './CrossChainBuilder.js'
-import { InternalConfig } from './InternalConfig.js'
+import { SdkConfig } from './SdkConfig.js'
 import { SessionData } from '../../contractTypes/SessionData.js'
 import {
   abiEncodeVouchers,
@@ -101,7 +101,7 @@ export class CrossChainExecutor {
 
   constructor (
     readonly builder: CrossChainBuilder,
-    readonly config: InternalConfig,
+    readonly config: SdkConfig,
     private readonly ephemeralSigner: PrivateKeyAccount,
     readonly batches: SingleChainBatch[],
     readonly timeoutSeconds = config.input.execTimeoutSeconds ?? 30,
@@ -197,9 +197,7 @@ export class CrossChainExecutor {
     const { userOp } = batchStatusInfo.batch
 
     this.watchForUserOperationEvents(batchStatusInfo, callback)
-    console.warn('sendUserOperation:')
-    console.warn(userOp)
-    this.builder.smartAccount.sendUserOperation(userOp as UserOperation)
+    this.builder.getAccount().sendUserOperation(userOp as UserOperation)
       .catch(e => {
         console.error('Error executing UserOperation:', e)
         // Validation failure during sending.
@@ -299,7 +297,7 @@ export class CrossChainExecutor {
     console.log(`watching VoucherIssued for ${sender}/${senderNonce} on chain ${chainId}`)
     const paymaster = this.config.paymasters.addressOn(chainId)
     const eventPoller = new EventsPoller({
-      client: this.config.chains.on(chainId),
+      client: this.config.chains.clientOn(chainId),
       abi: this.config.paymasters.abi,
       eventNames: ['VoucherIssued'],
       onLog: (log: any) => {
@@ -330,7 +328,7 @@ export class CrossChainExecutor {
     const VoucherRequestCreated = 'VoucherRequestCreated'
 
     const eventPoller: IEventPoller = new EventsPoller({
-      client: this.config.chains.on(chainId),
+      client: this.config.chains.clientOn(chainId),
       abi: [
         ...this.config.entrypoints.abi,
         ...this.config.paymasters.abi

@@ -67,7 +67,7 @@ export class MultichainContract implements IMultiChainEntity {
   }
 
   async call (chainId: bigint, functionName: string, args: any[], callOptions: any = {}): Promise<any> {
-    const client = this.client.on(chainId)
+    const client = this.client.clientOn(chainId)
     const data = this.encodeFunctionData(functionName, args)
     const ret = await client.call({
       to: this.addressOn(chainId),

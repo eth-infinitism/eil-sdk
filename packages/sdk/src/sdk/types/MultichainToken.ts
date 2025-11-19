@@ -11,7 +11,7 @@ export type TotalBalanceOfResult = {
 
 //wrapper for multichain ERC20 token operations.
 export class MultichainToken extends MultichainContract {
-  constructor (client: MultichainClient, deployments: AddressPerChain) {
+  constructor (name: string, client: MultichainClient, deployments: AddressPerChain) {
     super(client, erc20Abi, deployments)
   }
 

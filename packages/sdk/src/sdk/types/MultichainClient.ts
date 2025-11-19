@@ -33,7 +33,7 @@ export class MultichainClient {
     this.clients.set(chainId, client);
   }
 
-  on (chainId: bigint): PublicClient {
+  clientOn (chainId: bigint): PublicClient {
     if (!this.clients.has(chainId)) {
       throw new Error(`No client found for chainId: ${chainId}. Supported chains: ${Array.from(this.clients.keys()).join(', ')}`);
     }
@@ -48,7 +48,7 @@ export class MultichainClient {
     args: any[],
     value?: bigint
   }): Promise<any> {
-    const client = this.on(chainId);
+    const client = this.clientOn(chainId);
     const data = encodeFunctionData({ abi, functionName, args });
     const valueHex = value ? toHex(value) : undefined
     const ret = await client.request({ method: 'eth_call', params: [{ to, data, value: valueHex }, 'latest'] }) as Hex

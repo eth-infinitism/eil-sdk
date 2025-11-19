@@ -1,6 +1,7 @@
 import { BatchBuilder, CrossChainExecutor } from '../builder/index.js'
 import { SingleChainBatch } from './SingleChainBatch.js'
 import { UserOperation } from './UserOperation.js'
+import { IMultiChainSmartAccount } from '../account/index.js'
 
 export interface ICrossChainBuilder {
 
@@ -8,7 +9,13 @@ export interface ICrossChainBuilder {
    * create a new batch, to be executed on the given chain.
    * @param chainId
    */
-  createBatch (chainId: bigint): BatchBuilder;
+  startBatch (chainId: bigint): BatchBuilder;
+
+  /**
+   * set the account to use to build and execution that coross chain operation
+   * must be called before build() and sign()
+   */
+  useAccount(account: IMultiChainSmartAccount): this
 
   /**
    * Build an array of {@link SingleChainBatch} objects, ready to be signed
@@ -23,6 +30,8 @@ export interface ICrossChainBuilder {
    * The smartAccount of this builder is used to sign the UserOps, by calling its signUserOps() method.
    */
   buildAndSign (): Promise<CrossChainExecutor>;
+
+  getAccount(): IMultiChainSmartAccount
 
   /**
    * initialize the SDK. validate all configuration is correct.

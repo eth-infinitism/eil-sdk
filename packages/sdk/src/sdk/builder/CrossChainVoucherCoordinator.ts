@@ -6,32 +6,32 @@ export class CrossChainVoucherCoordinator {
   /**
    * A mapping from the inputs of the Builder to the full voucher requests information for all batches.
    */
-  private vouchersInternalInfo: Map<SdkVoucherRequest, InternalVoucherInfo> = new Map()
+  private vouchersInternalInfo: Map<string, InternalVoucherInfo> = new Map()
 
   getAllVoucherInternalInfos (): InternalVoucherInfo[] {
     return [...this.vouchersInternalInfo.values()]
   }
 
-  getVoucherInternalInfo (sdkVoucherRequest: SdkVoucherRequest): InternalVoucherInfo | undefined {
-    return this.vouchersInternalInfo.get(sdkVoucherRequest)
+  getVoucherInternalInfo (refId: string): InternalVoucherInfo | undefined {
+    return this.vouchersInternalInfo.get(refId)
   }
 
   getAllOutVoucherRequests (): SdkVoucherRequest[] {
-    return Array.from(this.vouchersInternalInfo.keys())
+    return Array.from(this.vouchersInternalInfo.values()).map(info => info.voucher)
   }
 
   has (sdkVoucherRequest: SdkVoucherRequest): boolean {
-    return this.vouchersInternalInfo.has(sdkVoucherRequest)
+    return this.vouchersInternalInfo.has(sdkVoucherRequest.ref)
   }
 
-  set (sdkVoucherRequest: SdkVoucherRequest, internalVoucherInfo: InternalVoucherInfo): void {
-    this.vouchersInternalInfo.set(sdkVoucherRequest, internalVoucherInfo)
+  set (internalVoucherInfo: InternalVoucherInfo): void {
+    this.vouchersInternalInfo.set(internalVoucherInfo.voucher.ref, internalVoucherInfo)
   }
 
   updateVoucherXlps (voucherReq: SdkVoucherRequest, xlps: Address[]) {
-    const info = this.vouchersInternalInfo.get(voucherReq)
+    const info = this.vouchersInternalInfo.get(voucherReq.ref)
     if (!info) {
-      throw new Error(`Voucher request ${voucherReq} not found in action builder`)
+      throw new Error(`Voucher request ${voucherReq.ref} not found in action builder`)
     }
     info.allowedXlps = xlps
   }

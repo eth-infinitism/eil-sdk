@@ -15,7 +15,7 @@ import IEntryPointInterface from '@account-abstraction/contracts/artifacts/IEntr
 import { AtomicSwapFeeRule } from '../../contractTypes/AtomicSwapFeeRule.js'
 import { amountOrMinAmount, BatchBuilder } from './BatchBuilder.js'
 import { CrossChainExecutor } from './CrossChainExecutor.js'
-import { InternalConfig } from './InternalConfig.js'
+import { SdkConfig } from './SdkConfig.js'
 import {
   ICrossChainBuilder,
   InternalVoucherInfo,
@@ -55,10 +55,10 @@ export class CrossChainBuilder implements ICrossChainBuilder {
   private initialized = false
 
   batchBuilders: BatchBuilder[] = []
+  smartAccount: IMultiChainSmartAccount | undefined
 
   constructor (
-    readonly config: InternalConfig,
-    readonly smartAccount: IMultiChainSmartAccount,
+    readonly config: SdkConfig,
   ) {
     this.ephemeralSigner = privateKeyToAccount(generatePrivateKey())
     this.coordinator = new CrossChainVoucherCoordinator()
@@ -66,17 +66,32 @@ export class CrossChainBuilder implements ICrossChainBuilder {
     this.feeConfig = { ...defaultFeeConfig, ...config.input.feeConfig ?? {} }
   }
 
+  useAccount (account: IMultiChainSmartAccount): this {
+    if (this.smartAccount != null) {
+      throw new Error('cannoot call useAccount() more than once')
+    }
+    this.smartAccount = account
+    return this
+  }
+
+  getAccount (): IMultiChainSmartAccount {
+    if (this.smartAccount == null) {
+      throw new Error('must call useAccount() before build')
+    }
+    return this.smartAccount
+  }
+
   /**
    * create a new batch, to be executed on the given chain.
-   * @param chainId
+   * @param chainId the chain this batch will be executed on.
    */
-  createBatch (chainId: bigint): BatchBuilder {
+  startBatch (chainId: bigint): BatchBuilder {
     this.assertNotBuilt()
     const batch = new BatchBuilder(
+      this,
       this.ephemeralSigner,
       this.coordinator,
       this.config,
-      this.smartAccount,
       this.config.paymasters.addressOn(chainId),
       chainId
     )
@@ -145,10 +160,12 @@ export class CrossChainBuilder implements ICrossChainBuilder {
         entryPointAddress: this.config.entrypoints.addressOn(batch.chainId)
       }
     })
+    let smartAccount = this.getAccount()
     for (const userOp of userOpsToSign) {
-      await this.smartAccount.verifyBundlerConfig(userOp.chainId!, userOp.entryPointAddress!)
+
+      await smartAccount.verifyBundlerConfig(userOp.chainId!, userOp.entryPointAddress!)
     }
-    const signedUserOps = await this.smartAccount.signUserOps(userOpsToSign)
+    const signedUserOps = await smartAccount.signUserOps(userOpsToSign)
 
     //update the signed users in the batches
     batches.forEach((batch, index) => {
@@ -228,8 +245,9 @@ export class CrossChainBuilder implements ICrossChainBuilder {
    * Call the paymaster's 'getSenderNonce' view function for the account.
    */
   async _getVoucherSenderNonce (chainId: bigint) {
+    let smartAccount = this.getAccount()
     return await this.config.paymasters.call(chainId,
-      'getSenderNonce', [this.smartAccount.addressOn(chainId)])
+      'getSenderNonce', [smartAccount.addressOn(chainId)])
   }
 
   /**
@@ -309,7 +327,7 @@ export class CrossChainBuilder implements ICrossChainBuilder {
   }
 
   getVoucherInternalInfo (voucher: SdkVoucherRequest): InternalVoucherInfo {
-    const info = this.coordinator.getVoucherInternalInfo(voucher)
+    const info = this.coordinator.getVoucherInternalInfo(voucher.ref)
     if (info == null) {
       throw new Error(`Voucher request ${voucher} not found in action builder`)
     }
@@ -321,8 +339,8 @@ export class CrossChainBuilder implements ICrossChainBuilder {
     const chainId = voucherInternalInfo.sourceBatch.chainId
     const allowedXlps = voucherInternalInfo.allowedXlps!
     const destChainId = voucherRequest.destinationChainId
-    const account = this.smartAccount.contractOn(chainId)
-    const destAccount = this.smartAccount.contractOn(destChainId)
+    const account = this.getAccount().contractOn(chainId)
+    const destAccount = this.getAccount().contractOn(destChainId)
     const paymaster = this.config.paymasters.addressOn(chainId)
     const destPaymaster = this.config.paymasters.addressOn(destChainId)
     return {

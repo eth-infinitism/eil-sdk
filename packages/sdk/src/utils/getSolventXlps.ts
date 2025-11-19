@@ -61,7 +61,7 @@ export async function getSolventXlps (
   length: number = 1000
 ): Promise<SolventXlpInfo[]> {
   const paymasterAddress: Address = paymasters.addressOn(chainId)
-  const client: PublicClient = paymasters.client.on(chainId)
+  const client: PublicClient = paymasters.client.clientOn(chainId)
   const assets: Asset[] = mcAssets.map((asset: MultiChainAsset) => ({
     erc20Token: toAddress(chainId, asset.token),
     amount: amountOrMinAmount(asset)

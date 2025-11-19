@@ -6,6 +6,9 @@
     "clean": "rm -rf dist"
   },
   "version": "0.1.0",
-  "main": "index.js",
-  "license": "MIT"
+  "main": "./dist/index.js",
+  "license": "MIT",
+  "dependencies": {
+    "permissionless": "^0.3.2"
+  }
 }

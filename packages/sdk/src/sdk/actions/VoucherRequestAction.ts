@@ -1,7 +1,7 @@
 import { Address, Call } from 'viem'
 
 import { BaseAction, BatchBuilder, FunctionCall, SdkVoucherRequest, toAddress } from '../index.js'
-import { NATIVE_ETH } from '../types/Constants.js'
+import { NATIVE_ETH } from '../types/index.js'
 
 /**
  * The internal class defining an action to lock the user deposit for the specified {@link SdkVoucherRequest}.

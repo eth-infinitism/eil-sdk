@@ -1,5 +1,4 @@
 import { Address, createClient, fromHex, Hex, http } from 'viem'
-import { entryPoint08Address } from 'viem/account-abstraction'
 
 import { stringifyBigIntReplacer } from '../sdkUtils/SdkUtils.js'
 import { IBundlerManager } from '../types/IBundlerManager.js'
@@ -8,31 +7,16 @@ import { UserOperation } from '../types/UserOperation.js'
 import { IJsonRpcProvider } from '../types/index.js'
 
 export class MultichainBundlerManager implements IBundlerManager {
-  isInitialized = false
 
-  constructor (readonly chainInfos: ChainInfo[], bundlers: Array<[chainId: bigint, url: string, entryPoint?: Address]> = []) {
-    for (const [chainId, url, entryPointAddress] of bundlers) {
+  constructor (readonly chainInfos: ChainInfo[]) {
+    for (const { chainId, bundlerUrl, entryPointAddress } of chainInfos) {
       let provider = createClient({
-        transport: http(url, { retryCount: 0 })
+        transport: http(bundlerUrl, { retryCount: 0 })
       }).transport
-      this.addBundler(chainId, provider, entryPointAddress ?? entryPoint08Address)
-    }
-  }
-
-  async initialize (): Promise<void> {
-    for (const chain of this.chainInfos) {
-      let provider: IJsonRpcProvider
-      if (chain.bundlerUrl != null) {
-        provider = createClient({
-          transport: http(chain.bundlerUrl, { retryCount: 0 })
-        }).transport
-      } else {
-        provider = chain.publicClient.transport
+      if (bundlerUrl !== undefined) {
+        this.addBundler(chainId, provider, entryPointAddress!)
       }
-      const entryPointAddress = chain.entryPointAddress ?? entryPoint08Address
-      this.addBundler(chain.chainId, provider, entryPointAddress)
     }
-    this.isInitialized = true
   }
 
   bundlers: Map<bigint, IJsonRpcProvider> = new Map()
@@ -59,9 +43,6 @@ export class MultichainBundlerManager implements IBundlerManager {
   }
 
   sendUserOperation (userOp: UserOperation): Promise<Hex> {
-    if (!this.isInitialized) {
-      throw new Error('MultichainBundlerManager is not initialized')
-    }
     const provider = this.bundlers.get(userOp.chainId!)!
     if (!provider) {
       throw new Error(`No bundler found for chainId: ${userOp.chainId!}`)

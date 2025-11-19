@@ -1,7 +1,6 @@
-import { CrossChainConfig } from './config/index.js'
-import { ICrossChainBuilder, ICrossChainSdk, IJsonRpcProvider } from './types/index.js'
-import { CrossChainBuilder, InternalConfig } from './builder/index.js'
-import { IMultiChainSmartAccount } from './account/index.js'
+import { CrossChainConfig, defaultCrossChainConfig } from './config/index.js'
+import { AddressPerChain, ICrossChainBuilder, ICrossChainSdk, MultichainToken } from './types/index.js'
+import { CrossChainBuilder, SdkConfig } from './builder/index.js'
 
 /**
  * This class is the main component for building cross-chain actions.
@@ -9,21 +8,30 @@ import { IMultiChainSmartAccount } from './account/index.js'
  */
 export class CrossChainSdk implements ICrossChainSdk {
 
-  config: InternalConfig
+  config: SdkConfig
 
   constructor (
-    readonly account: IMultiChainSmartAccount,
-    config: CrossChainConfig,
-    readonly walletProvider: IJsonRpcProvider | undefined = undefined
+    config: CrossChainConfig = defaultCrossChainConfig
   ) {
-    this.config = new InternalConfig(config)
+    this.config = new SdkConfig(config)
   }
 
   /**
    * create a builder for a cross-chain operation
    */
   createBuilder (): ICrossChainBuilder {
-    return new CrossChainBuilder(this.config, this.account)
+    return new CrossChainBuilder(this.config)
+  }
+
+  /**
+   * create a MultichainToken with the given deployment addresses
+   */
+  createToken (name: string, deployments: AddressPerChain): MultichainToken {
+    return new MultichainToken(name, this.config.chains, deployments)
+  }
+
+  getConfig (): SdkConfig {
+    return this.config
   }
 }
 

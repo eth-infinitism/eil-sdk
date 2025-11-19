@@ -10,4 +10,7 @@ export interface SdkVoucherRequest {
   target?: Address
   sourceChainId?: bigint
   destinationChainId: bigint
+
+  // internal ID used during batch building. must be unique.
+  ref: string
 }

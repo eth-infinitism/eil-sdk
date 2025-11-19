@@ -2,8 +2,9 @@ import { Address, Hex, PrivateKeyAccount, publicActions } from 'viem'
 import { BaseAction, FunctionCallAction, prepareCallWithRuntimeVars, VoucherRequestAction } from '../actions/index.js'
 import { CrossChainBuilder } from './CrossChainBuilder.js'
 import { CrossChainVoucherCoordinator } from './CrossChainVoucherCoordinator.js'
-import { InternalConfig } from './InternalConfig.js'
+import { SdkConfig } from './SdkConfig.js'
 import {
+  ICrossChainBuilder,
   InternalVoucherInfo,
   isCall,
   isValidAddress,
@@ -15,7 +16,6 @@ import {
 } from '../types/index.js'
 import { appendPaymasterSignature, getUserOpHash } from '../index.js'
 import { assert } from '../sdkUtils/SdkUtils.js'
-import { IMultiChainSmartAccount } from '../account/index.js'
 import { Asset } from '../../contractTypes/Asset.js'
 import { abiEncodePaymasterData } from '../../utils/index.js'
 
@@ -56,13 +56,17 @@ export class BatchBuilder {
   private _vars: Set<string> = new Set()
 
   constructor (
+    private readonly parentBuilder: ICrossChainBuilder,
     private readonly ephemeralSigner: PrivateKeyAccount,
     private readonly coordinator: CrossChainVoucherCoordinator,
-    readonly config: InternalConfig,
-    private readonly smartAccount: IMultiChainSmartAccount,
+    readonly config: SdkConfig,
     readonly paymaster: `0x${string}`,
     readonly chainId: bigint
   ) {}
+
+  endBatch (): ICrossChainBuilder {
+    return this.parentBuilder
+  }
 
   /**
    * Add a new dynamic runtime variable to the batch.
@@ -127,7 +131,7 @@ export class BatchBuilder {
     } else {
       assert(req.sourceChainId == this.chainId, `Voucher request sourceChainId ${req.sourceChainId} does not match batch chainId ${this.chainId}`)
     }
-    assert(!this.coordinator.has(req), `Voucher request ${req} already exists in this BatchBuilder`)
+    assert(!this.coordinator.has(req), `Voucher request ${req.ref} already exists in this BatchBuilder`)
 
     req.tokens.forEach(token => {
       if (!isValidAddress(req.sourceChainId!, token.token)) {
@@ -138,7 +142,7 @@ export class BatchBuilder {
       }
     })
 
-    this.coordinator.set(req, {
+    this.coordinator.set({
       voucher: req,
       sourceBatch: this,
     })
@@ -155,13 +159,14 @@ export class BatchBuilder {
   /**
    * Use the {@link SdkVoucherRequest} created in an earlier batch to move tokens to this chain.
    */
-  useVoucher (voucher: SdkVoucherRequest): this {
+  useVoucher (refId: string): this {
     this.assertNotBuilt()
-    const internalVoucherInfo = this.coordinator.getVoucherInternalInfo(voucher)
-    assert(internalVoucherInfo != null, `Voucher request ${voucher} not found in action builder`)
+    const internalVoucherInfo = this.coordinator.getVoucherInternalInfo(refId)
+    const voucher = internalVoucherInfo?.voucher!
+    assert(internalVoucherInfo != null, `Voucher request ${refId} not found in action builder`)
     assert(this.userOpOverrides?.paymaster == null && this.userOpOverrides?.paymasterData == null,
       `Cannot override paymaster or paymasterData in a batch that uses vouchers.`)
-    assert(internalVoucherInfo.destBatch == undefined, `Voucher request ${voucher} already used`)
+    assert(internalVoucherInfo.destBatch == undefined, `Voucher request ${refId} already used`)
     assert(voucher.destinationChainId == this.chainId,
       `Voucher request is for chain ${voucher.destinationChainId}, but batch is for chain ${this.chainId}`)
     internalVoucherInfo.destBatch = this
@@ -179,7 +184,7 @@ export class BatchBuilder {
     for (const v of allVoucherRequests) {
       if (v.destinationChainId === this.chainId) {
         added = true
-        this.useVoucher(v)
+        this.useVoucher(v.ref)
       }
     }
     assert(added, `No voucher requests found for chain ${this.chainId}`)
@@ -194,7 +199,8 @@ export class BatchBuilder {
   async createUserOp (): Promise<UserOperation> {
     const chainId = this.chainId
 
-    const smartAccount = this.smartAccount.contractOn(chainId)
+    const mcAccount = this.parentBuilder.getAccount()
+    const smartAccount = mcAccount.contractOn(chainId)
     const allCalls = await Promise.all(this.actions.map((action) => {
       return action.encodeCall(this)
     }))
@@ -209,7 +215,7 @@ export class BatchBuilder {
       smartAccount.getAddress(),
       smartAccount.getNonce(),
       smartAccount.getFactoryArgs(),
-      calls.length == 0 ? '0x' : this.smartAccount.encodeCalls(chainId, calls)
+      calls.length == 0 ? '0x' : mcAccount.encodeCalls(chainId, calls)
     ])
 
     const { maxFeePerGas, maxPriorityFeePerGas } = await smartAccount.client.extend(publicActions).estimateFeesPerGas()
@@ -312,7 +318,7 @@ export class BatchBuilder {
   }
 
   getVoucherInternalInfo (voucher: SdkVoucherRequest): InternalVoucherInfo | undefined {
-    return this.coordinator.getVoucherInternalInfo(voucher)
+    return this.coordinator.getVoucherInternalInfo(voucher.ref)
   }
 
   getOutVoucherRequests (): SdkVoucherRequest[] {
