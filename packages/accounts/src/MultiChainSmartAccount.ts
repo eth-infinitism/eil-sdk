@@ -49,6 +49,9 @@ export class MultiChainSmartAccount extends BaseMultichainSmartAccount {
       for (const chain of config.input.chainInfos) {
         let client = config.chains.clientOn(chain.chainId)
         const entryPointAddress = config.entrypoints.addressOn(chain.chainId)
+        console.log('ep=', entryPointAddress)
+
+        const factoryAddress = '0xa46cc63eBF4Bd77888AA327837d20b23A63a56B5' //ep9 simpleAccount factory
         const account: SmartAccount = await toSimpleSmartAccount({
           owner,
           client,
@@ -56,7 +59,7 @@ export class MultiChainSmartAccount extends BaseMultichainSmartAccount {
             address: entryPointAddress,
             version: '0.8'
           },
-          factoryAddress: '0xAD07bbb7bEA77E323C838481F668d22864e9F66E'
+          factoryAddress
         })
         accounts.push(account)
       }
