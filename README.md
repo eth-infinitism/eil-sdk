@@ -25,7 +25,7 @@ Cross-Chain Liquidity Providers (XLPs) front the gas fees on all destination cha
 
 ### Multi-Chain Execution Handling
 
-The EIL SDK handles the full flow of the Multi-Chain Execution, handling XLP selection, Voucher application and error handling.
+The EIL SDK handles the full flow of the Multi-Chain Execution, Cross-Chain asset transfer through Voucher application, XLP selection and error handling.
 It can be adopted by dapps and wallets alike to provide the EIL experience to their users.
 
 ## 🛠️ When to Use EIL?
@@ -36,7 +36,7 @@ EIL is ideal for applications and users who need to:
 
 * Use assets scattered across different chains without the friction of bridging.
 
-* Transact across chains without holding gas funds on every chain involved.
+* Transact across chains without holding native gas token on every chain involved.
 
 * Require trustless, decentralized, and censorship-resistant cross-chain execution.
 
