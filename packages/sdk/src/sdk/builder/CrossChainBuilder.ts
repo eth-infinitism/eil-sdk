@@ -240,14 +240,22 @@ export class CrossChainBuilder implements ICrossChainBuilder {
       unspentVoucherFee: BigInt(unspentVoucherFeePercent * 10_000),
     }
   }
-
+ 
+  lastNonce: Map<bigint, bigint> = new Map()
   /**
    * Call the paymaster's 'getSenderNonce' view function for the account.
    */
   async _getVoucherSenderNonce (chainId: bigint) {
     let smartAccount = this.getAccount()
-    return await this.config.paymasters.call(chainId,
+    if (this.lastNonce.has(chainId)) {
+      const nonce = this.lastNonce.get(chainId)
+      this.lastNonce.set(chainId, nonce + 1n)
+      return nonce
+    }
+    const nonce = await this.config.paymasters.call(chainId,
       'getSenderNonce', [smartAccount.addressOn(chainId)])
+     this.lastNonce.set(chainId, nonce + 1n)
+      return nonce
   }
 
   /**
